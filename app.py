@@ -1,45 +1,59 @@
 from flask import Flask, request, jsonify
-from ocr import perform_ocr
-from receipt_parser import parse_receipt
-from classifier import classify_receipt
 import os
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import numpy as np
 
 app = Flask(__name__)
-UPLOAD_FOLDER = "static/uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Ensure upload folder exists
+# Load the pre-trained model
+model = load_model("receipt_classifier_model.h5")
+
+# Class labels
+CATEGORIES = ["grocery", "restaurant", "electronics", "clothing", "other"]
+
+# Configuration
+UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/')
+def index():
+    return "Receipt Processing API is Running!"
 
 @app.route('/upload', methods=['POST'])
 def upload_receipt():
-    if 'file' not in request.files:
+    # Check if a file part is in the request
+    if 'receipt' not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No file selected"}), 400
+    file = request.files['receipt']
+    if not file:
+        return jsonify({"error": "No file uploaded"}), 400
 
-    # Save the uploaded file
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(file_path)
+    # Validate filename
+    if not file.filename or file.filename.strip() == '':
+        return jsonify({"error": "File name is empty or invalid"}), 400
 
-    # Perform OCR
-    extracted_text = perform_ocr(file_path)
+    # Save the file
+    filename = os.path.basename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
 
-    # Parse receipt data
-    parsed_data = parse_receipt(extracted_text)
+    # Preprocess the image for classification
+    image = load_img(filepath, target_size=(128, 128))  # Resize to model input size
+    image = img_to_array(image)  # Convert image to array
+    image = image / 255.0  # Normalize image to [0, 1] range
+    image = np.expand_dims(image, axis=0)  # Add batch dimension
 
-    # Classify receipt
-    category = classify_receipt(file_path)
+    # Make prediction
+    try:
+        predictions = model.predict(image)
+        predicted_class = CATEGORIES[np.argmax(predictions)]
+    except Exception as e:
+        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
 
-    # Combine results
-    result = {
-        "text": extracted_text,
-        "parsed_data": parsed_data,
-        "category": category
-    }
-    return jsonify(result)
+    return jsonify({"message": "File uploaded successfully", "predicted_class": predicted_class}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)   
