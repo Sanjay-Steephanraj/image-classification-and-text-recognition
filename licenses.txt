@@ -1,0 +1,38 @@
+The following are the packages used in the text recognition model
+- numpy -> BSD 3-Clause license
+- pytesseract -> Apache 2.0 license
+- cv2 -> Apache 2.0 license
+- re -> Python Standard Library (PSL), governed by Python Software Foundataion(PSF) license
+- json -> PSL (PSF license)
+- rembg -> MIT License
+
+*Other libraries that can be used in the near future:*
+- Tensorflow (including core, lite and hub) -> Apache 2.0 license
+- PyTorch -> BSD 3-Clause License
+- Matplotlib -> Matplotlib license (based on PSF and BSD)
+- scikit-learn -> BSD 3-Clause License
+
+*Notes about these lienses:*
+
+*BSD 3-Clause License*
+    The BSD 3-Clause License is permissive, allowing:
+- Commercial use.
+- Modifications and redistribution.
+- Use in closed-source products.
+
+*Conditions:*
+- You must include the license text and copyright notice in your distribution.
+- You cannot use the names of the contributors to promote your product without permission.
+
+*Python Software Foundation License*
+    The PSF License is also permissive and allows:
+- Commercial use.
+- Integration into closed-source projects.
+
+*Conditions:*
+- You must include attribution in your product documentation or source code.
+
+*Key Points for Closed-Source Use*
+- Attribution Requirement: Both licenses require that you provide attribution to the original authors and include the license text in your product or documentation.
+- No Copyleft Restrictions: Neither license requires you to open-source your product, unlike GPL-style licenses.
+- No Liability or Warranty: Both disclaim liability and warranties, so ensure you test the libraries thoroughly for your use case.
